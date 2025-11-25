@@ -34,9 +34,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/crypto-perps-backtest-engine"
-Documentation = "https://github.com/your-org/crypto-perps-backtest-engine/docs"
-Repository = "https://github.com/your-org/crypto-perps-backtest-engine"
+Homepage = "https://github.com/metinmertyesilyurt/Crypto-Perps-Backtest-Engine"
+Documentation = "https://github.com/metinmertyesilyurt/Crypto-Perps-Backtest-Engine/docs"
+Repository = "https://github.com/metinmertyesilyurt/Crypto-Perps-Backtest-Engine"
 
 [tool.setuptools.packages.find]
 where = ["."]
