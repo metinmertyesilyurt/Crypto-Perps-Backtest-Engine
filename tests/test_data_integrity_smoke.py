@@ -7,12 +7,10 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import sys
+import os
 import tempfile
 import shutil
 import subprocess
-
-# Add engine_core to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 class TestDataIntegritySmoke(unittest.TestCase):
     def setUp(self):
@@ -61,7 +59,19 @@ class TestDataIntegritySmoke(unittest.TestCase):
     def test_validation_pass(self):
         self.create_valid_data()
         
+        # Call script file directly, but set PYTHONPATH so subprocess can find engine_core package
+        # The script imports 'engine_core.src.data.loader', which requires the parent of engine_core/
+        # to be in PYTHONPATH (not engine_core/ itself), so engine_core/ can be imported as a package
         script_path = Path(__file__).parent.parent / "scripts" / "validate_data_integrity.py"
+        repo_root = Path(__file__).parent.parent  # This is engine_core/
+        repo_parent = repo_root.parent  # This is the parent directory containing engine_core/
+        env = os.environ.copy()
+        pythonpath = str(repo_parent)
+        if 'PYTHONPATH' in env:
+            env['PYTHONPATH'] = pythonpath + os.pathsep + env['PYTHONPATH']
+        else:
+            env['PYTHONPATH'] = pythonpath
+        
         cmd = [
             sys.executable, str(script_path),
             "--data-path", str(self.data_dir),
@@ -69,7 +79,7 @@ class TestDataIntegritySmoke(unittest.TestCase):
         ]
         
         # Run script
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, env=env)
         
         self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
         self.assertIn("Checking VALID... OK", result.stdout)
@@ -78,7 +88,19 @@ class TestDataIntegritySmoke(unittest.TestCase):
         """Test that script catches injected issues: duplicate timestamp, NaN, OHLC violation"""
         self.create_invalid_data()
         
+        # Call script file directly, but set PYTHONPATH so subprocess can find engine_core package
+        # The script imports 'engine_core.src.data.loader', which requires the parent of engine_core/
+        # to be in PYTHONPATH (not engine_core/ itself), so engine_core/ can be imported as a package
         script_path = Path(__file__).parent.parent / "scripts" / "validate_data_integrity.py"
+        repo_root = Path(__file__).parent.parent  # This is engine_core/
+        repo_parent = repo_root.parent  # This is the parent directory containing engine_core/
+        env = os.environ.copy()
+        pythonpath = str(repo_parent)
+        if 'PYTHONPATH' in env:
+            env['PYTHONPATH'] = pythonpath + os.pathsep + env['PYTHONPATH']
+        else:
+            env['PYTHONPATH'] = pythonpath
+        
         cmd = [
             sys.executable, str(script_path),
             "--data-path", str(self.data_dir),
@@ -86,7 +108,7 @@ class TestDataIntegritySmoke(unittest.TestCase):
         ]
         
         # Run script - expect failure
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, env=env)
         
         self.assertNotEqual(result.returncode, 0, "Script should fail on invalid data")
         # Script may show "FAIL" or "LOAD ERROR" - either is acceptable for invalid data
